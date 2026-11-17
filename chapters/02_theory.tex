@@ -1,0 +1,38 @@
+\chapter{Theoretical Background}
+\label{ch:theory}
+
+\section{ROS2 basics}
+
+ROS2 is a framework for robot software. A program in ROS2 is split into \emph{nodes}, and each node has one task, for example reading a sensor or controlling the motors. Nodes exchange messages over named channels called \emph{topics}. A node can publish messages on a topic, and any other node can subscribe to it~\citep{ros2_jazzy}. Each topic has a fixed message type, for example \texttt{sensor\_msgs/LaserScan} for a lidar scan or \texttt{geometry\_msgs/Twist} for a velocity command. Settings of a node are given as \emph{parameters}, and several nodes can be started together with a \emph{launch file}~\citep{ros2_jazzy}.
+
+The positions of the robot and its sensors are described with coordinate frames. The library \texttt{tf2} keeps track of the transforms between these frames, so that for example a lidar point can be converted from the lidar frame into the map frame~\citep{ros2_jazzy}. REP~103 defines SI units and a coordinate system with $x$ forward, $y$ to the left and $z$ up~\citep{rep103}. REP~105 defines the standard frames of a mobile robot~\citep{rep105}:
+\begin{itemize}
+  \item \texttt{base\_link} is fixed to the robot,
+  \item \texttt{odom} is a frame in which the robot position changes smoothly but drifts over time (odometry),
+  \item \texttt{map} is a frame in which the robot position is corrected, for example by SLAM.
+\end{itemize}
+The transform chain is therefore \texttt{map}~$\rightarrow$~\texttt{odom}~$\rightarrow$~\texttt{base\_link}~$\rightarrow$~sensor frames.
+
+\section{Mapping and navigation}
+\label{sec:theory_slam}
+
+\paragraph{SLAM Toolbox.} SLAM (simultaneous localisation and mapping) means that the robot builds a map and at the same time estimates its own position in this map. In this work, the SLAM Toolbox was used, a ROS2 package for 2D SLAM with a lidar~\citep{slam_toolbox}. It matches each new laser scan with the previous scans (scan matching), stores the robot poses in a pose graph and corrects the graph when the robot comes back to a place it has already seen (loop closure). The odometry of the robot is used as the starting point for the scan matching. SLAM Toolbox publishes the map on \texttt{/map} and the transform \texttt{map}~$\rightarrow$~\texttt{odom}. It can run in a synchronous mode, where every scan is processed, or in an asynchronous mode, where a new scan is only processed when the previous one is finished~\citep{slam_toolbox}.
+
+\paragraph{Nav2.} Nav2 is the navigation stack of ROS2~\citep{nav2_docs}. It consists of several nodes:
+\begin{itemize}
+  \item the \emph{planner server} plans a path from the robot to the goal on a global cost map,
+  \item the \emph{controller server} follows this path and calculates velocity commands using a local cost map around the robot,
+  \item the \emph{behavior tree navigator} receives the goal and coordinates the other nodes,
+  \item the \emph{behavior server} runs recovery behaviours, for example turning on the spot or backing up, when the robot is stuck,
+  \item the \emph{velocity smoother} limits the velocities and accelerations before the command is sent to the robot on \texttt{/cmd\_vel}.
+\end{itemize}
+The cost maps contain the obstacles from the map and from the current laser scan, with a safety zone around them (inflation), so that the planned path keeps a distance to obstacles~\citep{nav2_docs}. One of the available controllers is the MPPI controller (model predictive path integral). It samples many possible trajectories, rates them with several criteria (e.g.\ distance to the path and to obstacles) and chooses the best one~\citep{nav2_docs}.
+
+Nav2 can also be used while the map is still being created. In this case, SLAM Toolbox provides the map and the transform \texttt{map}~$\rightarrow$~\texttt{odom}, and no separate localisation is needed~\citep{nav2_slam}.
+
+\paragraph{Visualisation.} Foxglove is a tool for visualising robot data. The \texttt{foxglove\_bridge} runs as a node on the robot and provides the ROS2 topics over a WebSocket connection, so that the Foxglove application on another computer can display them and also publish messages~\citep{foxglove_bridge}.
+
+\section{Challenges of self-driving robots}
+\label{sec:challenges}
+
+\todo{To be written with literature.}

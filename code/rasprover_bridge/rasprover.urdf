@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+  Simple robot description of the Waveshare RaspRover with RPLIDAR A2M12.
+  base_link: centre between the four wheels, at floor level (REP 103: x forward, y left, z up).
+  Measured on the robot (Nov. 2026): lidar 0.01 m in front of the centre, centred laterally,
+  scan plane 0.19 m above the floor, mounted rotated by 180 degrees.
+-->
+<robot name="rasprover">
+
+  <link name="base_link">
+    <!-- Rough body for visualisation only. TODO: measure the chassis and adjust the size. -->
+    <visual>
+      <origin xyz="0 0 0.08" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.25 0.20 0.08"/>
+      </geometry>
+      <material name="grey">
+        <color rgba="0.6 0.6 0.6 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <link name="laser">
+    <visual>
+      <geometry>
+        <cylinder radius="0.038" length="0.04"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="laser_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="laser"/>
+    <origin xyz="0.01 0 0.19" rpy="0 0 3.14159265"/>
+  </joint>
+
+  <link name="imu_link"/>
+
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <!-- TODO: measure the position of the IMU on the driver board. Orientation assumed aligned with base_link. -->
+    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+  </joint>
+
+</robot>

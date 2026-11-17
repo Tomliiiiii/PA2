@@ -1,0 +1,47 @@
+\chapter{Discussion}
+\label{ch:discussion}
+
+\section{Odometry and calibration}
+
+\todo{Write at the end. Notes:
+\begin{itemize}
+  \item Accelerometer: 8156 at standstill fits 8192 per $g$.
+  \item Gyroscope scale: turn test 16.1, 16.4 used because the angle was only estimated; test turn 97° for slightly more than 90°.
+  \item Distance error 3\,\% in two tests, corrected; counter resolution 1\,cm.
+  \item Slip when turning: only 52\,\% of commanded rate $\rightarrow$ heading from gyroscope instead of wheels.
+  \item Remaining drift approx.\ 2°/min (24°/min without offset correction), corrected by SLAM.
+  \item Limits: short tests, one smooth floor, estimates by eye; gravel/grass in the Schlosshof will differ.
+\end{itemize}}
+
+\section{Platform and software}
+
+\todo{Write at the end. Notes:
+\begin{itemize}
+  \item Commercial platform solved open points of the previous work (encoders, IMU, motor controller), but firmware is poorly documented.
+  \item Docker: manufacturer image unchanged, but privileged container; Dockerfile still missing.
+  \item Power supply: USB current limit, highest load when motors, lidar and Pi run together.
+  \item Simple Python bridge node instead of \texttt{ros2\_control}; two independent stop functions.
+\end{itemize}}
+
+\section{Mapping and navigation}
+
+\todo{Write at the end (map quality, localisation, obstacle avoidance, reaching goals, computing load on the Raspberry Pi). Notes:
+\begin{itemize}
+  \item Default robot radius and inflation radius too large for small rooms; values have to fit the real robot size.
+  \item MPPI with skid steering: turning in several small moves; Rotation Shim Controller makes turning on the spot possible.
+  \item Possible reason for the stuttering at low angular acceleration: the shim increases the command step by step starting from the measured angular velocity, the robot turns slower than commanded (slip, 52\,\%), so the commands stay too low to start the rotation. Still to be checked.
+  \item Supervisor: robot should work with partial maps and avoid obstacles without knowing the whole area (Schlosshof is large). Nav2 already works with the growing SLAM map and the live scan in the local cost map.
+  \item Standstill during obstacle avoidance: cause still open.
+\end{itemize}}
+
+\section{Achievement of objectives}
+
+\todo{Write at the end (status of objectives 1 and 2 and of the evaluation, deviations from the plan).}
+
+\section{Reflection on the work process}
+
+\todo{Personal reflection.}
+
+\section{Outlook}
+
+\todo{Write at the end.}

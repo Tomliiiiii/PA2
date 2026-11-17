@@ -1,0 +1,22 @@
+\chapter{Source Code}
+\label{app:code}
+
+The bridge node is a ROS2 Python package (\texttt{ament\_python}) named \texttt{rasprover\_bridge}. It is built with \texttt{colcon build} inside the ROS2 container and started with \texttt{ros2 run rasprover\_bridge bridge}. The calibrated distance scale is passed as parameter: \texttt{--ros-args -p odom\_scale:=0.0097}.
+
+The container was created with the following command on the Raspberry Pi:
+
+\begin{lstlisting}[language=bash, numbers=none, caption={Creation of the ROS2 container.}, label={lst:docker}]
+docker run -it --name ros2 \
+  --network host --ipc host \
+  --privileged -v /dev:/dev \
+  -v ~/ros2_ws:/ros2_ws \
+  ros:jazzy-ros-base bash
+\end{lstlisting}
+
+\lstinputlisting[language=Python, caption={\texttt{bridge\_node.py}}, label={lst:bridge}]{code/bridge_node.py}
+
+\lstinputlisting[language=XML, caption={Robot description \texttt{rasprover.urdf}}, label={lst:urdf}]{code/rasprover_bridge/rasprover.urdf}
+
+\lstinputlisting[language=Python, caption={Launch file \texttt{robot.launch.py}}, label={lst:launch}]{code/rasprover_bridge/robot.launch.py}
+
+\lstinputlisting[language=Python, caption={Launch file \texttt{bringup.launch.py}}, label={lst:bringuplaunch}]{code/rasprover_bridge/bringup.launch.py}

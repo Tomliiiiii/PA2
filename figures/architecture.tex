@@ -1,0 +1,30 @@
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+      font=\small,
+      box/.style={draw, rounded corners=2pt, align=center, minimum height=1cm, inner sep=5pt, fill=white},
+      comp/.style={box, minimum width=2.6cm},
+      arr/.style={-{Stealth[length=2mm]}, thick},
+      lbl/.style={font=\scriptsize, fill=white, inner sep=1pt}
+    ]
+    \node[comp, minimum width=4.0cm, minimum height=1.6cm] (pi) {\textbf{Raspberry Pi 5}\\ROS2 Jazzy (Docker)\\bridge node};
+    \node[comp, minimum width=4.0cm, minimum height=1.6cm, right=2.6cm of pi] (esp) {\textbf{ESP32}\\(driver board)\\PID motor control};
+    \node[comp, above left=1.0cm and -1.6cm of pi] (lidar) {RPLIDAR A2M12};
+    \node[comp, above right=1.0cm and -1.6cm of pi] (cam) {USB camera\\5\,MP, 160°};
+    \node[comp, above left=1.0cm and -1.6cm of esp] (imu) {9-axis IMU};
+    \node[comp, above right=1.0cm and -1.6cm of esp] (ina) {INA219\\voltage};
+    \node[comp, below left=1.0cm and -1.6cm of esp] (mot) {4$\times$ N20 motor\\with encoder};
+    \node[comp, below right=1.0cm and -1.6cm of esp] (oled) {OLED, LEDs};
+    \node[comp, minimum width=2.1cm, right=0.8cm of esp] (bat) {3S battery\\UPS module};
+    \draw[arr, <->] (pi) -- node[lbl, above] {UART (JSON)} node[lbl, below, align=center] {40-pin header\\+ \SI{5}{\volt} supply} (esp);
+    \draw[arr] (lidar) -- node[lbl, left] {USB / UART} (pi);
+    \draw[arr] (cam) -- node[lbl, right] {USB} (pi);
+    \draw[arr] (imu) -- node[lbl, left] {I\textsuperscript{2}C} (esp);
+    \draw[arr] (ina) -- node[lbl, right] {I\textsuperscript{2}C} (esp);
+    \draw[arr, <->] (esp) -- node[lbl, left] {PWM / enc.} (mot);
+    \draw[arr] (esp) -- node[lbl, right] {I\textsuperscript{2}C / PWM} (oled);
+    \draw[arr, dashed] (bat) -- node[lbl, above] {power} (esp);
+  \end{tikzpicture}
+  \caption{Hardware architecture of the robot.}
+  \label{fig:architecture}
+\end{figure}

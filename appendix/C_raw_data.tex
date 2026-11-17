@@ -1,0 +1,90 @@
+\chapter{Raw Data of the Calibration and Validation Tests}
+\label{app:rawdata}
+
+\section*{C.1 Feedback message at standstill}
+
+\begin{lstlisting}[language=json, numbers=none, caption={Feedback message of the ESP32 at standstill.}, label={lst:feedback}]
+{"T":1001,"L":0,"R":0,"ax":12,"ay":-118,"az":8156,"gx":-46,"gy":20,"gz":8,
+ "mx":-428,"my":8,"mz":899,"odl":44,"odr":55,"v":1167}
+\end{lstlisting}
+
+\section*{C.2 Distance tests}
+
+Commanded speed \SI{0.3}{\metre\per\second} on both sides; values printed every fifth command (approx.\ \SI{0.5}{\second}).
+
+\begin{lstlisting}[numbers=none, caption={Forward drive, measured distance approx.\ 95\,cm.}, label={lst:forward}]
+Start: 276 286
+0 L: 0 R: 0 odl: 276 odr: 286
+5 L: 0.2991993 R: 0.2991993 odl: 288 odr: 298
+10 L: 0.2991993 R: 0.2991993 odl: 303 odr: 314
+15 L: 0.2991993 R: 0.299049775 odl: 319 odr: 329
+20 L: 0.2991993 R: 0.2991993 odl: 334 odr: 345
+25 L: 0.2991993 R: 0.35903916 odl: 349 odr: 360
+30 L: 0.2991993 R: 0.299949173 odl: 364 odr: 375
+End: 373 384
+Difference odl: 97 odr: 98
+\end{lstlisting}
+
+\begin{lstlisting}[numbers=none, caption={Backward drive over a similar distance.}, label={lst:backward}]
+Start: 175 184
+0 L: -0.11967972 R: -0.11961991 odl: 174 odr: 183
+5 L: -0.2991993 R: -0.2991993 odl: 160 odr: 170
+10 L: -0.2991993 R: -0.2991993 odl: 145 odr: 154
+15 L: -0.2991993 R: -0.284061797 odl: 129 odr: 139
+20 L: -0.35903916 R: -0.2991993 odl: 114 odr: 124
+25 L: -0.2991993 R: -0.23935944 odl: 99 odr: 109
+30 L: -0.2991993 R: -0.299348975 odl: 84 odr: 94
+End: 76 86
+Difference odl: -99 odr: -98
+\end{lstlisting}
+
+\section*{C.3 Gyroscope tests}
+
+\begin{lstlisting}[numbers=none, caption={Gyroscope offset and turn test (commanded 1.5\,rad/s for 3\,s, estimated rotation approx.\ 120\textdegree).}, label={lst:gyro}]
+Gyro offset gz (standstill): 6.6
+Number of samples: 80
+Mean gz during the turn (raw): 730.0
+Integral of gz over time (raw*s): 1930.3
+\end{lstlisting}
+
+\section*{C.4 Validation of the bridge node}
+
+\begin{lstlisting}[numbers=none, caption={Publication rate of /odom (excerpt of ros2 topic hz).}, label={lst:hz}]
+average rate: 19.815
+        min: 0.050s max: 0.053s std dev: 0.00079s window: 21
+average rate: 19.757
+        min: 0.050s max: 0.057s std dev: 0.00113s window: 181
+\end{lstlisting}
+
+\begin{lstlisting}[numbers=none, caption={Gyroscope offset determined by the bridge node at start-up.}, label={lst:nodeoffset}]
+Gyro offset determined (43 samples): gx=-50.9 gy=13.3 gz=6.7
+\end{lstlisting}
+
+\begin{lstlisting}[numbers=none, caption={Pose on /odom at the end of the straight drive (scale factor 0.01\,m per unit).}, label={lst:straight}]
+position:    x: 1.0840747670157718   y: -0.028124860572776945
+orientation: z: -0.0380   (standstill, start) ... -0.0392 (approx. 4 s later)
+\end{lstlisting}
+
+\begin{lstlisting}[numbers=none, caption={Orientation q\_z on /odom during the turn test (excerpt).}, label={lst:turn}]
+before the turn (approx. 9 s standstill): -0.0905 ... -0.0931
+end of the turn (standstill):              0.6865 ...  0.6863
+\end{lstlisting}
+
+\section*{C.5 Lidar integration}
+
+\begin{lstlisting}[numbers=none, caption={First start of the lidar driver (USB current limit active).}, label={lst:lidarerror}]
+[sllidar_node]: SLLidar S/N: 98CDFA89C7E19EC8BCE499F0131A5670
+[sllidar_node]: Firmware Ver: 1.32
+[sllidar_node]: Hardware Rev: 6
+[sllidar_node]: SLLidar health status : OK.
+[sllidar_node]: Can not start scan: 80008002!
+\end{lstlisting}
+
+\begin{lstlisting}[numbers=none, caption={Publication rate of /scan after lifting the USB current limit (excerpt).}, label={lst:scanhz}]
+average rate: 10.073
+        min: 0.098s max: 0.104s std dev: 0.00228s window: 12
+average rate: 10.105
+        min: 0.092s max: 0.105s std dev: 0.00205s window: 177
+\end{lstlisting}
+
+\todo{Store the complete recordings (e.g.\ as rosbag or text files) in the repository and refer to them here.}

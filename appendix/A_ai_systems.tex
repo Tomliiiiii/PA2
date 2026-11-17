@@ -1,0 +1,30 @@
+\chapter{Directory of the Generative AI Systems Used}
+\label{app:ai}
+
+Declaration according to the ZHAW information sheet on the use of generative AI in assignments (version 2.0.0). The author remains responsible for the relevance, correctness and accuracy of all content; all AI output was checked, and all measurements and tests on the robot were carried out by the author.
+
+\todo{Information duty: ask the supervisor which use of generative AI is expected or allowed and in which form it has to be declared; adapt this table accordingly.}
+
+\begin{table}[H]
+  \centering
+  \small
+  \caption{Generative AI systems used, purpose and area of application.}
+  \label{tab:ai}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{4.2cm} X >{\raggedright\arraybackslash}p{3.6cm}@{}}
+    \toprule
+    \textbf{AI system} & \textbf{Purpose} & \textbf{Area of application} \\
+    \midrule
+    Anthropic. (2026). \emph{Claude} [Large language model]. https://claude.ai
+      & Support with troubleshooting during commissioning
+      & Sections~\ref{sec:commissioning}, \ref{sec:lidar_results} and~\ref{sec:nav_results} \\
+    & Generation of source code (bridge node, test scripts, URDF, launch file) and of the SLAM and Nav2 configuration
+      & Sections~\ref{sec:bridge} and~\ref{sec:slam_method}, Appendix~\ref{app:code} \\
+    & Data evaluation (calculation of calibration factors)
+      & Chapter~\ref{ch:results} \\
+    & Structuring, formulation and translation of the text
+      & Entire work \\
+    & Creation of figures (TikZ code)
+      & Fig.~\ref{fig:architecture}, \ref{fig:bridge} and~\ref{fig:nodes} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}

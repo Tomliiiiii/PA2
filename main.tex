@@ -1,0 +1,157 @@
+% ============================================================
+% Project Work 2 -- BSc Applied Digital Life Sciences, ZHAW LSFM
+% Structure according to "Arbeitsanleitung fuer die Abfassung von
+% studentischen Arbeiten im Bereich Life Sciences" (N-AA)
+% ============================================================
+\documentclass[11pt,a4paper,oneside]{report}
+
+% ------------------------------------------------------------
+% Metadata (used on title page, imprint and header)
+% ------------------------------------------------------------
+\newcommand{\thesistitle}{Navigation and Environmental Mapping for an Autonomous Mobile Robot}
+\newcommand{\thesissubtitle}{}
+\newcommand{\thesistype}{Project Work 2}
+\newcommand{\authorfirst}{Tim}
+\newcommand{\authorlast}{Badertscher}
+\newcommand{\degreeprogramme}{Bachelor's Degree Programme Applied Digital Life Sciences}
+\newcommand{\specialisation}{Specialisation Digital Labs and Production}
+\newcommand{\minors}{Minors Ecology, Geodata Processing and Image Processing}
+\newcommand{\submissiondate}{10 December 2026}
+\newcommand{\institute}{Institute of Computational Life Sciences}
+
+% ------------------------------------------------------------
+% Packages
+% ------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[a4paper,margin=2.5cm,headheight=14pt]{geometry}
+
+% Sans-serif font similar to Arial (guideline: e.g. Arial 11 pt)
+\usepackage[scaled=0.92]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage[italic]{mathastext}
+
+% Line spacing (guideline: max. 1.5)
+\usepackage{setspace}
+\setstretch{1.2}
+
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{siunitx}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage[nottoc,notlot,notlof,numbib]{tocbibind}
+\usepackage[numbers,square,sort&compress]{natbib}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{same}
+
+% ------------------------------------------------------------
+% Layout
+% ------------------------------------------------------------
+% Compact chapter headings
+\titleformat{\chapter}[hang]{\normalfont\LARGE\bfseries}{\thechapter}{0.8em}{}
+\titlespacing*{\chapter}{0pt}{0pt}{1.2em}
+
+% Header: ZHAW LSFM, type of work, author; footer: page number
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small ZHAW LSFM -- \thesistype}
+\fancyhead[R]{\small \authorfirst\ \authorlast}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyhead[L]{\small ZHAW LSFM -- \thesistype}\fancyhead[R]{\small \authorfirst\ \authorlast}\fancyfoot[C]{\small\thepage}}
+
+% Labels according to the guideline ("Fig." / "Tab.")
+\addto\captionsenglish{
+  \renewcommand{\figurename}{Fig.}
+  \renewcommand{\tablename}{Tab.}
+  \renewcommand{\bibname}{References}
+}
+
+% Avoid lines sticking out into the margin (long \texttt words)
+\setlength{\emergencystretch}{3em}
+
+% ------------------------------------------------------------
+% Helpers
+% ------------------------------------------------------------
+% Open points that still have to be filled in or checked
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+
+\sisetup{per-mode=symbol}
+
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{codecomment}{RGB}{90,120,90}
+\definecolor{codekeyword}{RGB}{30,60,150}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  commentstyle=\color{codecomment},
+  keywordstyle=\color{codekeyword}\bfseries,
+  stringstyle=\color{black!70},
+  frame=single,
+  rulecolor=\color{black!20},
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  numbers=left,
+  numberstyle=\tiny\color{black!50},
+  captionpos=t
+}
+\renewcommand{\lstlistingname}{Listing}
+\lstdefinelanguage{json}{morestring=[b]"}
+
+% ============================================================
+\begin{document}
+
+% ---------------- Preliminaries (not numbered) --------------
+\pagenumbering{roman}
+\input{frontmatter/titlepage}
+\input{frontmatter/imprint}
+\input{frontmatter/abstract}
+
+\tableofcontents
+\input{frontmatter/abbreviations}
+
+% ---------------- Main part ---------------------------------
+\cleardoublepage
+\pagenumbering{arabic}
+\input{chapters/01_introduction}
+\input{chapters/02_theory}
+\input{chapters/03_materials_methods}
+\input{chapters/04_results}
+\input{chapters/05_discussion}
+
+% References: numbered chapter (guideline), numeric in order of citation
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+% ---------------- Lists (not numbered) ----------------------
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{List of Figures}
+\listoffigures
+\phantomsection
+\addcontentsline{toc}{chapter}{List of Tables}
+\listoftables
+
+% ---------------- Appendix (not numbered) -------------------
+\appendix
+\input{appendix/00_appendix_directory}
+\input{appendix/A_ai_systems}
+\input{appendix/B_command_reference}
+\input{appendix/C_raw_data}
+\input{appendix/D_source_code}
+\input{appendix/E_declaration}
+
+\end{document}

@@ -1,0 +1,77 @@
+\chapter{Command Reference}
+\label{app:commands}
+
+Selection of JSON commands of the ESP32 firmware. All commands are documented by Waveshare~\citep{waveshare_json}.
+
+\begin{table}[H]
+  \centering
+  \small
+  \caption{Selected ESP32 commands.}
+  \label{tab:commandref}
+  \begin{tabularx}{\textwidth}{@{}l X@{}}
+    \toprule
+    \textbf{Command} & \textbf{Function} \\
+    \midrule
+    \multicolumn{2}{@{}l}{\textit{Motion}} \\
+    \texttt{\{"T":1,"L":0.2,"R":0.2\}}         & Target speed left / right in \si{\metre\per\second} (closed loop) \\
+    \texttt{\{"T":11,"L":164,"R":164\}}        & PWM value left / right, $-255$ to $255$ (open loop) \\
+    \texttt{\{"T":13,"X":0.1,"Z":0.3\}}        & Linear (\si{\metre\per\second}) and angular (\si{\radian\per\second}) velocity \\
+    \texttt{\{"T":2,"P":20,"I":2000,"D":0,"L":255\}} & PID parameters of the motor controller (default values) \\
+    \texttt{\{"T":138,"L":1,"R":1\}}           & Speed ratio left / right for straight driving \\
+    \texttt{\{"T":136,"cmd":3000\}}            & Heartbeat interval in \si{\milli\second} \\
+    \midrule
+    \multicolumn{2}{@{}l}{\textit{Feedback and sensors}} \\
+    \texttt{\{"T":130\}}                       & Request a single feedback message \\
+    \texttt{\{"T":131,"cmd":1\}}               & Continuous feedback on (1) / off (0) \\
+    \texttt{\{"T":142,"cmd":50\}}              & Feedback interval in \si{\milli\second} \\
+    \texttt{\{"T":126\}}                       & Request IMU data \\
+    \texttt{\{"T":143,"cmd":1\}}               & Echo received commands (debugging) \\
+    \midrule
+    \multicolumn{2}{@{}l}{\textit{Configuration and output}} \\
+    \texttt{\{"T":900,"main":1,"module":0\}}   & Chassis type (1 = RaspRover) and module (0 = none) \\
+    \texttt{\{"T":3,"lineNum":0,"Text":"..."\}} & Text on the OLED display (lines 0--3) \\
+    \texttt{\{"T":132,"IO4":255,"IO5":255\}}   & 12\,V switched outputs / LEDs, 0--255 \\
+    \texttt{\{"T":600\}}                       & Restart the ESP32 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section*{ROS2 commands}
+
+Commands used to start the system in the container (\texttt{docker exec -it ros2 bash}). Normally, everything is started with one command:
+
+\begin{lstlisting}[language=bash, numbers=none, caption={Start with one command.}, label={lst:bringup}]
+# Robot, SLAM Toolbox (after 5 s) and Nav2 (after 15 s)
+ros2 launch rasprover_bridge bringup.launch.py
+# Only robot and SLAM Toolbox (mapping)
+ros2 launch rasprover_bridge bringup.launch.py nav:=false
+# Save the log at the same time
+ros2 launch rasprover_bridge bringup.launch.py 2>&1 | tee /ros2_ws/nav_log.txt
+\end{lstlisting}
+
+For troubleshooting, the parts can also be started one by one, each in its own terminal:
+
+\begin{lstlisting}[language=bash, numbers=none, caption={Start step by step.}, label={lst:start}]
+# 1. Robot: robot_state_publisher, bridge node, lidar, foxglove_bridge
+ros2 launch rasprover_bridge robot.launch.py
+# 2. SLAM Toolbox
+ros2 launch slam_toolbox online_async_launch.py \
+  slam_params_file:=/ros2_ws/config/slam.yaml
+# 3. Check the transform tree
+ros2 run tf2_ros tf2_echo map base_link
+# 4. Nav2
+ros2 launch nav2_bringup navigation_launch.py \
+  params_file:=/ros2_ws/config/nav2.yaml
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash, numbers=none, caption={Other commands.}, label={lst:other}]
+# Manual driving
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+# Constant rotation for testing (stop with Ctrl+C)
+ros2 topic pub -r 10 /cmd_vel geometry_msgs/msg/Twist "{angular: {z: 1.6}}"
+# Save the map
+ros2 run nav2_map_server map_saver_cli -f /ros2_ws/maps/raum1
+# List running nodes (restart the daemon if the list is incomplete)
+ros2 daemon stop
+ros2 node list
+\end{lstlisting}

@@ -1,0 +1,51 @@
+\chapter{Introduction}
+\label{ch:introduction}
+
+\section{Background}
+
+This project builds on a previous project at the EDXI Lab of the Institute of Computational Life Sciences, which looked at an autonomous robot for plant management on green rooftops with photovoltaic installations~\citep{graham2024}. In that project, a robot chassis, a basic control logic and design specifications were developed, and a digital twin of the robot was built with ROS2. The real robot did not drive autonomously yet: it had no sensors for the environment and no wheel encoders, so odometry, mapping and navigation were not possible. The previous work also named the unstable ROS2 Rolling distribution and the network setup at ZHAW as problems.
+
+For this project, the EDXI Lab provided a commercial robot platform, a Waveshare RaspRover, and an RPLIDAR A2M12 lidar sensor.
+
+\section{Objectives}
+
+The objective of this project is to implement robot control for movement and environmental mapping, so that the robot can map and navigate the Schlosshof of ZHAW Wädenswil using ROS2 and edge computing. Two results are expected:
+
+\begin{enumerate}
+  \item \textbf{Robot and sensor control}
+  \item \textbf{Collision avoidance and mapping} with the lidar sensor
+\end{enumerate}
+
+The work follows the guiding questions from the project outline (Tab.~\ref{tab:questions}).
+
+\begin{table}[H]
+  \centering
+  \small
+  \caption{Guiding questions of the project and the chapters in which they are answered.}
+  \label{tab:questions}
+  \begin{tabularx}{\textwidth}{@{}l X l@{}}
+    \toprule
+    \textbf{Phase} & \textbf{Guiding question} & \textbf{Chapter} \\
+    \midrule
+    Preparation        & What approaches exist for mapping and navigation of mobile robots? & \ref{ch:theory} \\
+                       & What are the challenges of self-driving robots? & \ref{ch:theory} \\
+    \midrule
+    Setup of robot     & How does the robot move? & \ref{ch:methods}, \ref{ch:results} \\
+    and sensors        & Which sensors and actuators does the robot have? & \ref{ch:methods} \\
+                       & How do the robot's components communicate with each other? & \ref{ch:methods} \\
+    \midrule
+    Mapping and        & How can the robot capture and map its environment? & \ref{ch:methods}, \ref{ch:results} \\
+    navigation         & How does the robot determine its position on the map? & \ref{ch:methods}, \ref{ch:results} \\
+                       & How does the robot detect and avoid obstacles? & \ref{ch:methods}, \ref{ch:results} \\
+                       & How can the robot reach a given position? & \ref{ch:methods}, \ref{ch:results} \\
+    \midrule
+    Evaluation         & How accurate is the generated map? & \ref{ch:results}, \ref{ch:discussion} \\
+                       & How reliably does the robot reach its target? & \ref{ch:results}, \ref{ch:discussion} \\
+                       & What are the limitations of the system? & \ref{ch:discussion} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Scope}
+
+The project only covers the perception of the environment and the movement of the robot. Plant detection, additional actuators and the robotic arm that is developed for the robot in a separate project are not part of this work.

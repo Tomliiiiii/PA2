@@ -1,0 +1,28 @@
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+      font=\small,
+      box/.style={draw, rounded corners=2pt, align=center, minimum height=0.9cm, inner sep=5pt, fill=white},
+      arr/.style={-{Stealth[length=2mm]}, thick},
+      lbl/.style={font=\scriptsize, fill=white, inner sep=1pt}
+    ]
+    \node[box, minimum width=3.0cm] (cmd) {\texttt{/cmd\_vel}};
+    \node[box, minimum width=3.0cm, below=0.35cm of cmd] (odom) {\texttt{/odom}, TF};
+    \node[box, minimum width=3.0cm, below=0.35cm of odom] (imu) {\texttt{/imu/data\_raw}};
+    \node[box, minimum width=3.0cm, below=0.35cm of imu] (bat) {\texttt{/battery\_state}};
+    \node[box, right=1.3cm of cmd, minimum width=3.4cm] (timer) {send timer\\\SI{20}{\hertz}};
+    \node[box, right=1.3cm of imu, minimum width=3.4cm, yshift=0.65cm, minimum height=2.2cm] (reader) {read thread\\parse JSON\\convert units\\integrate odometry};
+    \node[box, right=2.3cm of timer, minimum width=2.0cm, minimum height=4.6cm, yshift=-1.95cm] (esp) {\textbf{ESP32}};
+    \begin{scope}[on background layer]
+      \node[draw, dashed, rounded corners, fit=(timer)(reader), inner sep=8pt, label={[font=\scriptsize]above:\texttt{rasprover\_bridge}}] {};
+    \end{scope}
+    \draw[arr] (cmd) -- (timer);
+    \draw[arr] (timer) -- node[lbl, above=2pt] {\texttt{\{"T":13,...\}}} (timer -| esp.west);
+    \draw[arr] (reader -| esp.west) -- node[lbl, above=2pt] {\texttt{\{"T":1001,...\}}} (reader);
+    \draw[arr] (reader.west) -- ++(-0.6,0) |- (odom);
+    \draw[arr] (reader.west) -- ++(-0.6,0) |- (imu);
+    \draw[arr] (reader.west) -- ++(-0.6,0) |- (bat);
+  \end{tikzpicture}
+  \caption{Structure of the bridge node.}
+  \label{fig:bridge}
+\end{figure}

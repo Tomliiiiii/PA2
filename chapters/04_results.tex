@@ -1,0 +1,116 @@
+\chapter{Results}
+\label{ch:results}
+
+\section{Commissioning}
+\label{sec:commissioning}
+
+At the beginning, the Raspberry Pi only booted with an external power supply, and drive commands from the web application were not executed, although the web application showed the battery voltage. A test over the Wi-Fi interface of the ESP32 showed that the ESP32 and the motors worked. The problem was that the Raspberry Pi had been mounted the wrong way round, so its 40-pin header was not plugged into the driver board and neither the \SI{5}{\volt} supply nor the UART connection worked. After mounting it correctly, the Pi booted from the battery and executed the drive commands. After the re-assembly, the camera was not detected anymore; reconnecting its cables fixed this.
+
+ROS2 Jazzy was installed in the Docker container as described in Section~\ref{sec:software}. The installation was tested with the talker/listener example and with a serial test from the container, in which the wheels turned and a feedback message was received.
+
+\section{Meaning of the ESP32 feedback}
+\label{sec:feedback_results}
+
+Table~\ref{tab:feedback} shows the meaning and conversion of the feedback values determined in the calibration tests. The measured values are in Appendix~\ref{app:rawdata}.
+
+\begin{table}[H]
+  \centering
+  \small
+  \caption{Values of the ESP32 feedback message and their conversion to SI units ($b$: gyroscope offset, $g$: gravitational acceleration).}
+  \label{tab:feedback}
+  \begin{tabularx}{\textwidth}{@{}l X >{\raggedright\arraybackslash}p{3.8cm}@{}}
+    \toprule
+    \textbf{Value} & \textbf{Meaning} & \textbf{Conversion} \\
+    \midrule
+    \texttt{L}, \texttt{R}        & Speed of the left / right side & direct, \si{\metre\per\second} \\
+    \texttt{odl}, \texttt{odr}    & Distance of the left / right side; integer, adds up, signed, reset at ESP32 restart & $\times\,0.0097$ $\rightarrow$ \si{\metre} \\
+    \texttt{ax}, \texttt{ay}, \texttt{az} & Acceleration, raw values & $/\,8192 \cdot g$ $\rightarrow$ \si{\metre\per\second\squared} \\
+    \texttt{gx}, \texttt{gy}, \texttt{gz} & Angular rate, raw values & $(\text{raw} - b)/16.4$ $\rightarrow$ \si{\degree\per\second} \\
+    \texttt{mx}, \texttt{my}, \texttt{mz} & Magnetic field, raw values & not used \\
+    \texttt{v}                    & Battery voltage & $/\,100$ $\rightarrow$ \si{\volt} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Calibration}
+\label{sec:calibration_results}
+
+\paragraph{Wheel speed and distance.} With a commanded speed of \SI{0.3}{\metre\per\second}, \texttt{L}/\texttt{R} showed \SI{0.299}{\metre\per\second}. Driving forward for about \SI{95}{\centi\metre} increased \texttt{odl}/\texttt{odr} by 97 and 98, about 15 per \SI{0.5}{\second}. Driving backward over a similar distance changed them by $-99$ and $-98$. Between two tests, the counters jumped from 384 to 175 without any movement. In a first attempt without clearing the input buffer, a change of only 1 was measured for the same drive.
+
+\paragraph{Accelerometer.} When the robot was standing, the vertical axis showed $a_z = 8156$. Upside down, it showed $a_z = -8462$.
+
+\paragraph{Gyroscope.} The offset of the vertical axis was $b_z = 6.6$ (30 values), which is \SI{0.40}{\degree\per\second}. In the turn test, the integrated values (without offset) were \num{1930.3} raw units$\cdot$\si{\second} for an estimated rotation of \SI{120}{\degree}. This gives a scale factor of $1930.3/120 \approx 16.1$ raw units per \si{\degree\per\second}. The mean value during the turn was 730 raw units, i.e.\ \SI{44.5}{\degree\per\second} or \SI{0.78}{\radian\per\second}. This is only \SI{52}{\percent} of the commanded \SI{1.5}{\radian\per\second}.
+
+Table~\ref{tab:calibration} shows the values that were used in the bridge node.
+
+\begin{table}[H]
+  \centering
+  \small
+  \caption{Calibration values used in the bridge node.}
+  \label{tab:calibration}
+  \begin{tabular}{@{}l l l@{}}
+    \toprule
+    \textbf{Parameter} & \textbf{Value} & \textbf{Based on} \\
+    \midrule
+    Distance scale $s$      & \SI{0.0097}{\metre} per unit     & distance tests, straight drive \\
+    Accelerometer scale     & 8192 per $g$                     & value while standing \\
+    Gyroscope scale         & 16.4 per \si{\degree\per\second} & turn test (16.1) \\
+    Gyroscope offset $b_z$  & measured at every start          & mean over \SI{2}{\second} while standing \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Test of the bridge node}
+\label{sec:validation_results}
+
+\paragraph{Rate.} \texttt{/odom} was published with \SI{19.8}{\hertz} on average, with time steps between \SI{50}{\milli\second} and \SI{57}{\milli\second} (standard deviation about \SI{1}{\milli\second}). At the start, the node measured a gyroscope offset of $b_z = 6.7$ from 43 values. The robot followed the keyboard commands without interruptions.
+
+\paragraph{Straight drive and turn.} Table~\ref{tab:validation} compares the odometry with the measured or estimated movement. For the straight drive, the first scale factor of \SI{0.01}{\metre} per unit was still used.
+
+\begin{table}[H]
+  \centering
+  \small
+  \caption{Odometry compared with the measured movement.}
+  \label{tab:validation}
+  \begin{tabular}{@{}l l r l@{}}
+    \toprule
+    \textbf{Test} & \textbf{Value} & \textbf{Odometry} & \textbf{Measured / estimated} \\
+    \midrule
+    Straight drive & Distance $x$       & \SI{1.084}{\metre}  & about \SI{1.05}{\metre} \\
+                   & Lateral offset $y$ & \SI{-0.028}{\metre} & slight drift to the right \\
+                   & Heading $\psi$     & \SI{-4.4}{\degree}  & slight turn to the right \\
+    \midrule
+    Turn           & Heading, start     & \SI{-10.4}{\degree} ($q_z = -0.0905$) & -- \\
+                   & Heading, end       & \SI{86.7}{\degree} ($q_z = 0.6865$)  & -- \\
+                   & Rotation           & \SI{97.1}{\degree}  & a bit more than \SI{90}{\degree} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The odometry overestimated the distance by about \SI{3}{\percent}, so the scale factor was changed to \SI{0.0097}{\metre} per unit. While standing still, the heading changed by about \SI{0.1}{\degree} in \SI{4}{\second} after the straight drive and by about \SI{0.3}{\degree} in \SI{9}{\second} before the turn. This corresponds to a remaining drift of about \SI{0.03}{\degree\per\second}.
+
+\section{Lidar integration}
+\label{sec:lidar_results}
+
+At the first start, the driver connected to the lidar and read its serial number, firmware version (1.32) and health status (OK), but the scan could not be started (error code \texttt{80008002}, timeout), and the lidar motor did not turn. At the same time, the kernel log showed that the USB camera was disconnected and connected again, which points to a voltage drop on the USB ports. The USB current limit of the Raspberry Pi was active (\texttt{usb\_max\_current\_enable=0}). After switching off the limit and restarting, the motor turned, the scan ran without errors, and no undervoltage was reported (\texttt{throttled=0x0}). In addition, the launch file of the driver for the A2M12 had a space in its file name and had to be renamed before it could be used.
+
+The scan was published with \SI{10.1}{\hertz} on average (time steps \SIrange{0.092}{0.105}{\second}, standard deviation about \SI{2}{\milli\second}). A hand held close to the lidar appeared as a group of points at the expected distance of about \SIrange{0.15}{0.35}{\metre}. When the robot was standing on a table, many directions gave no measurement (\texttt{inf}), because the scan plane was just above the table. In the visualisation, an object in front of the robot appeared on the negative $x$-axis, which showed that the lidar is turned by \SI{180}{\degree} (raw data in Appendix~\ref{app:rawdata}). After mounting the lidar with the adapter plate and setting yaw $=\pi$ in the URDF, objects in front of the robot were shown in front of the robot model.
+
+\section{Mapping and navigation}
+\label{sec:nav_results}
+
+\todo{Write at the end. Notes so far:
+\begin{itemize}
+  \item First indoor map created and saved (\texttt{raum1}); screenshot still missing.
+  \item Slowly growing offset between \texttt{odom} and \texttt{base\_link} visible in Foxglove (gyro drift), corrected by SLAM Toolbox via \texttt{map}~$\rightarrow$~\texttt{odom}.
+  \item Start problem: Nav2 reported missing transform \texttt{base\_link}~$\rightarrow$~\texttt{map}, SLAM Toolbox dropped scans (``Message Filter dropping message''). Cause: \texttt{robot\_state\_publisher} not running. Fixed by restart and fixed start order.
+  \item Two goals set in Foxglove were reached.
+  \item Problems: ``Failed to make progress'' with recovery behaviours, jerky driving at low velocities, occasional ``control loop missed its desired rate''.
+  \item \texttt{bringup.launch.py}: all nodes start. \texttt{ros2 node list} first showed only part of the nodes; after \texttt{ros2 daemon stop} all nodes were listed.
+  \item Small room with robot radius \SI{0.22}{\metre} and inflation radius \SI{0.70}{\metre}: robot hardly moved, area around it was treated as blocked.
+  \item Higher velocity limits: driving straight much smoother. Turning: stuttering forward and backward movements instead of turning on the spot.
+  \item Constant command \SI{1.6}{\radian\per\second} with \texttt{ros2 topic pub} (without Nav2): robot turns smoothly on the spot $\rightarrow$ hardware OK.
+  \item Rotation Shim Controller: robot turns on the spot, but with interruptions at \SI{2.5}{\radian\per\second\squared}; much better at \SI{10}{\radian\per\second\squared}.
+  \item Obstacle test (living room): obstacle detected, robot drives around it and reaches the goal, but sometimes stands still for several seconds, and the detour takes very long. Cause still open (log analysis and CPU load planned).
+  \item Still to do: analyse standstill in obstacle test, repeated runs (success rate, position error), map accuracy, exploration (\texttt{explore\_lite}), Schlosshof.
+\end{itemize}}

@@ -1,0 +1,23 @@
+% Appendix directory at the beginning of the appendix (guideline 3.1.12).
+% Page and chapter numbering are not continued in the appendix.
+\cleardoublepage
+\pagenumbering{Roman}
+\chapter*{Appendix}
+\phantomsection
+\addcontentsline{toc}{chapter}{Appendix}
+\thispagestyle{fancy}
+
+\begin{tabularx}{\textwidth}{@{}l X r@{}}
+  \toprule
+  \textbf{Appendix} & \textbf{Content} & \textbf{Page} \\
+  \midrule
+  A & Directory of the generative AI systems used & \pageref{app:ai} \\
+  B & Command reference (ESP32 and ROS2) & \pageref{app:commands} \\
+  C & Raw data of the calibration and validation tests & \pageref{app:rawdata} \\
+  D & Source code (bridge node, URDF, launch file) & \pageref{app:code} \\
+  E & Declaration of originality & \pageref{app:declaration} \\
+  \bottomrule
+\end{tabularx}
+
+% Appendix chapters are not listed individually in the table of contents
+\addtocontents{toc}{\protect\setcounter{tocdepth}{-1}}
