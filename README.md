@@ -1,116 +1,116 @@
 # PA2 – Navigation and Environmental Mapping for an Autonomous Mobile Robot
 
-Projektarbeit 2, ZHAW (ADLS), Tim Badertscher. Betreuer: Christian Glahn, EDXI Lab.
+Project work 2, ZHAW (ADLS), Tim Badertscher. Supervisor: Christian Glahn, EDXI Lab.
 
-Ziel: Steuerung eines Waveshare RaspRover mit RPLIDAR A2M12, sodass der Roboter mit ROS2 eine Karte erstellt und darin selbständig zu Zielen fährt.
+Goal: control of a Waveshare RaspRover with an RPLIDAR A2M12, so that the robot creates a map with ROS2 and drives to goals in it on its own.
 
-**Inhalt:** [Befehle am Roboter](#befehle-am-roboter) · [Fehlerbehebung](#fehlerbehebung) · [Demo-Ablauf](#demo-ablauf) · [Bericht kompilieren](#bericht-kompilieren) · [Ordnerstruktur](#ordnerstruktur)
+**Contents:** [Robot commands](#robot-commands) · [Troubleshooting](#troubleshooting) · [Demo workflow](#demo-workflow) · [Compiling the report](#compiling-the-report) · [Folder structure](#folder-structure)
 
 ---
 
-## Befehle am Roboter
+## Robot commands
 
-### 1. Verbindung
+### 1. Connection
 
-| Netzwerk | JupyterLab | Foxglove |
+| Network | JupyterLab | Foxglove |
 |---|---|---|
-| Bekanntes WLAN (zu Hause) | `http://192.168.1.123:8888` | `ws://192.168.1.123:8765` |
-| Kein bekanntes WLAN → Pi öffnet Hotspot **„AccessPopup“** | `http://192.168.50.5:8888` | `ws://192.168.50.5:8765` |
+| Known Wi-Fi (at home) | `http://192.168.1.123:8888` | `ws://192.168.1.123:8765` |
+| No known Wi-Fi → Pi opens hotspot **"AccessPopup"** | `http://192.168.50.5:8888` | `ws://192.168.50.5:8765` |
 
-Der Hotspot öffnet nur, wenn kein bekanntes WLAN in Reichweite ist. Laptop zuerst mit dem Hotspot verbinden.
+The hotspot only opens if no known Wi-Fi is in range. Connect the laptop to the hotspot first.
 
-Jedes neue Terminal in JupyterLab zuerst in den Container:
+Every new terminal in JupyterLab has to enter the container first:
 
 ```bash
 docker exec -it ros2 bash
 ```
 
-### 2. Alles starten (Terminal 1)
+### 2. Start everything (terminal 1)
 
 ```bash
 ros2 launch rasprover_bridge bringup.launch.py
 ```
 
-- Roboter **die ersten Sekunden stillhalten** (Gyro-Kalibrierung).
-- Etwa **20 s warten**, bis Nav2 bereit ist (SLAM Toolbox startet nach 5 s, Nav2 nach 15 s).
-- **Ctrl+C** beendet alles, die Motoren stoppen.
+- **Keep the robot still for the first seconds** (gyroscope calibration).
+- Wait about **20 s** until Nav2 is ready (SLAM Toolbox starts after 5 s, Nav2 after 15 s).
+- **Ctrl+C** stops everything, the motors stop.
 
-Varianten:
+Variants:
 
 ```bash
-ros2 launch rasprover_bridge bringup.launch.py nav:=false        # nur Roboter + SLAM (Kartieren)
-ros2 launch rasprover_bridge bringup.launch.py foxglove:=false   # ohne Foxglove-Bridge
-ros2 launch rasprover_bridge robot.launch.py                     # nur Roboter (Bridge, Lidar, URDF, Foxglove)
-ros2 launch rasprover_bridge bringup.launch.py 2>&1 | tee /ros2_ws/nav_log.txt   # mit Log-Datei
+ros2 launch rasprover_bridge bringup.launch.py nav:=false        # only robot + SLAM (mapping)
+ros2 launch rasprover_bridge bringup.launch.py foxglove:=false   # without Foxglove bridge
+ros2 launch rasprover_bridge robot.launch.py                     # only robot (bridge, lidar, URDF, Foxglove)
+ros2 launch rasprover_bridge bringup.launch.py 2>&1 | tee /ros2_ws/nav_log.txt   # with log file
 ```
 
-### 3. Foxglove (Laptop)
+### 3. Foxglove (laptop)
 
-1. **Desktop-App** öffnen (die Web-Version kann sich nicht mit `ws://` verbinden).
-2. Open connection → **Foxglove WebSocket** → Adresse aus der Tabelle oben.
-3. Im 3D-Panel einblenden: `/map`, `/scan`, `/plan`, `/local_costmap/costmap`, `/explore/frontiers`.
-4. **Ziel setzen:** Panel-Einstellungen → Publish → bei **„2D pose“** das Topic `/goal_pose` eintragen (nicht bei „2D pose estimate“). Dann Publish-Werkzeug wählen, auf die Karte klicken und in Zielrichtung ziehen.
+1. Open the **desktop app** (the web version cannot connect to `ws://`).
+2. Open connection → **Foxglove WebSocket** → address from the table above.
+3. In the 3D panel, show: `/map`, `/scan`, `/plan`, `/local_costmap/costmap`, `/explore/frontiers`.
+4. **Set a goal:** panel settings → Publish → enter the topic `/goal_pose` for **"2D pose"** (not for "2D pose estimate"). Then select the publish tool, click on the map and drag in the target direction.
 
-### 4. Autonome Exploration (Terminal 2)
+### 4. Autonomous exploration (terminal 2)
 
 ```bash
 source /ros2_ws/install/setup.bash
 ros2 launch explore_lite explore.launch.py
 ```
 
-Der Roboter fährt selbständig zu den Rändern der bekannten Karte und hört von selbst auf, wenn nichts mehr zu erkunden ist.
+The robot drives to the borders of the known map on its own and stops when nothing is left to explore.
 
-⚠️ **Offene Türen und Absätze absperren**, mit etwas, das höher als 20 cm und nicht schwarz-matt ist. Der Lidar misst nur in einer Ebene auf 19 cm Höhe und sieht Türschwellen, Stufen und tiefe Hindernisse nicht.
+**Close off open doors and drops** with an object that is higher than 20 cm and not black and matte. The lidar only measures in one plane at 19 cm and does not see door thresholds, steps or low obstacles.
 
-### 5. Weitere Befehle
+### 5. Other commands
 
 ```bash
-# Karte speichern (vor Ctrl+C, sonst ist sie weg)
+# Save the map (before Ctrl+C, otherwise it is lost)
 ros2 run nav2_map_server map_saver_cli -f /ros2_ws/maps/<name>
 
-# Manuell fahren: i vorwärts, , rückwärts, j/l drehen, k stoppen
+# Drive by hand: i forward, , backward, j/l turn, k stop
 ros2 run teleop_twist_keyboard teleop_twist_keyboard
 
-# Konstante Drehung zum Testen (mit Ctrl+C stoppen)
+# Constant rotation for testing (stop with Ctrl+C)
 ros2 topic pub -r 10 /cmd_vel geometry_msgs/msg/Twist "{angular: {z: 1.6}}"
 ```
 
-### 6. Prüfen
+### 6. Checks
 
 ```bash
-ros2 daemon stop && ros2 node list           # laufende Nodes (Daemon neu starten, falls Liste unvollständig)
-ros2 topic hz /scan                          # Lidar, sollte ca. 10 Hz sein
-ros2 topic hz /odom                          # Odometrie, sollte ca. 20 Hz sein
-ros2 run tf2_ros tf2_echo map base_link      # Lokalisierung bereit?
+ros2 daemon stop && ros2 node list           # running nodes (restart the daemon if the list is incomplete)
+ros2 topic hz /scan                          # lidar, should be about 10 Hz
+ros2 topic hz /odom                          # odometry, should be about 20 Hz
+ros2 run tf2_ros tf2_echo map base_link      # is localisation ready?
 ros2 topic echo /battery_state --field voltage
 ```
 
-Log auswerten:
+Log analysis:
 
 ```bash
 grep -E "Begin navigating|Goal succeeded|Goal failed|Failed to make progress|Running|missed|ERROR" /ros2_ws/nav_log.txt
 ```
 
-### 7. Einzeln starten (zur Fehlersuche, je ein Terminal)
+### 7. Start step by step (for troubleshooting, one terminal each)
 
 ```bash
 ros2 launch rasprover_bridge robot.launch.py
 ros2 launch slam_toolbox online_async_launch.py slam_params_file:=/ros2_ws/config/slam.yaml
-ros2 run tf2_ros tf2_echo map base_link        # warten bis eine Transformation erscheint, dann Ctrl+C
+ros2 run tf2_ros tf2_echo map base_link        # wait until a transform appears, then Ctrl+C
 ros2 launch nav2_bringup navigation_launch.py params_file:=/ros2_ws/config/nav2.yaml
 ```
 
-### 8. Container und Build
+### 8. Container and build
 
-Auf dem Pi (nicht im Container):
+On the Pi (not inside the container):
 
 ```bash
-docker start ros2        # Container nach Neustart starten
-docker restart ros2      # neu starten, wenn etwas hängt
-docker ps                # läuft der Container?
+docker start ros2        # start the container after a reboot
+docker restart ros2      # restart if something hangs
+docker ps                # is the container running?
 ```
 
-Nach Code-Änderungen (im Container):
+After code changes (inside the container):
 
 ```bash
 cd /ros2_ws
@@ -118,69 +118,32 @@ colcon build --packages-select rasprover_bridge
 source install/setup.bash
 ```
 
-Änderungen in `/ros2_ws/config/slam.yaml` oder `nav2.yaml` brauchen keinen Build, nur einen Neustart.
+Changes in `/ros2_ws/config/slam.yaml` or `nav2.yaml` do not need a build, only a restart.
 
-Dateien hochladen: JupyterLab zeigt nur `~/ugv_rpi/`. Hochgeladene Dateien landen dort und müssen im Terminal (auf dem Pi) verschoben werden, z.B. `mv ~/ugv_rpi/<datei> ~/ros2_ws/...`. Zum Herunterladen umgekehrt zuerst nach `~/ugv_rpi/` kopieren.
-
----
-
-## Fehlerbehebung
-
-| Problem | Lösung |
-|---|---|
-| Foxglove verbindet nicht | IP-Adresse prüfen, läuft `bringup.launch.py`? Desktop-App statt Web-Version verwenden. |
-| Nav2: „transform base_link to map not available“ | `robot_state_publisher` oder SLAM läuft nicht. Alles beenden, `docker restart ros2`, neu starten. |
-| SLAM: „Message Filter dropping message“ | Transformation `base_link → laser` fehlt → `robot_state_publisher` läuft nicht. |
-| Lidar-Fehler `80008002` / Lidar-Motor dreht nicht | USB-Stromlimit: `usb_max_current_enable=1` in `/boot/firmware/config.txt`, dann Neustart. |
-| `ros2 node list` unvollständig | `ros2 daemon stop`, dann nochmals. |
-| Roboter fährt nicht los, wenn ein Ziel gesetzt wird | In Foxglove muss das Topic bei „2D pose“ `/goal_pose` sein. |
-| Roboter dreht hin und her / bleibt an Hindernissen hängen | Log nach `Failed to make progress` und `Control loop missed` durchsuchen. Keine schwarz-matten Hindernisse (Lidar sieht sie schlecht). |
-| Scan dreht sich im Stillstand gegenüber der Karte | Gyro-Drift. Bridge-Node neu starten (Zero-Velocity-Update in Arbeit). |
-| `docker: permission denied` | Benutzer in Gruppe `docker` aufnehmen (`sudo usermod -aG docker $USER`), dann Neustart. |
-| Keine serielle Verbindung zum ESP32 | Die Waveshare-Web-App darf nicht laufen (Autostart in `crontab` deaktiviert). |
-| Mehrzeilige Befehle nach `docker exec` gehen verloren | Zuerst nur `docker exec -it ros2 bash` ausführen, dann die Befehle. |
+Uploading files: JupyterLab only shows `~/ugv_rpi/`. Uploaded files end up there and have to be moved in the terminal (on the Pi), e.g. `mv ~/ugv_rpi/<file> ~/ros2_ws/...`. To download, first copy the file to `~/ugv_rpi/`.
 
 ---
 
-## Demo-Ablauf
-
-1. **Hardware zeigen:** RaspRover, Lidar mit 3D-gedruckter Halterung, Pi und ESP32.
-2. **Starten** mit `bringup.launch.py`, kurz erklären, was startet.
-3. **Foxglove:** Scan und Koordinatensysteme (`map`, `odom`, `base_link`, `laser`) zeigen.
-4. **Exploration starten:** Roboter erstellt die Karte selbst.
-5. **Ziele setzen** in der fertigen Karte, evtl. mit Hindernis dazwischen.
-6. **Grenzen ansprechen:** tiefe Kanten (Türschwelle), schwarz-matte Objekte, Rechenleistung des Pi.
-
-Vorher: Akku laden, Raum prüfen (Türen absperren), Verbindung über den Hotspot testen.
-
----
-
-## Bericht kompilieren
+## Compiling the report
 
 ```bash
 latexmk -pdf main.tex
 ```
 
-In VS Code mit LaTeX Workshop: Speichern kompiliert automatisch. Benötigt TeX Live mit den Sammlungen `collection-latexrecommended`, `collection-latexextra`, `collection-fontsrecommended`, `collection-langenglish`, `collection-pictures`, `collection-mathscience`.
-
-Falls `tlmgr` mit „checksums differ“ abbricht, ist der Download-Server fehlerhaft:
-
-```
-tlmgr option repository https://mirror.ctan.org/systems/texlive/tlnet
-```
+In VS Code with LaTeX Workshop, saving compiles automatically. Requires TeX Live with the collections `collection-latexrecommended`, `collection-latexextra`, `collection-fontsrecommended`, `collection-langenglish`, `collection-pictures`, `collection-mathscience`.
 
 ---
 
-## Ordnerstruktur
+## Folder structure
 
 ```
-main.tex                  Hauptdatei (Einstellungen, Reihenfolge der Kapitel)
-references.bib            Literatur
-frontmatter/              Titelseite, Impressum, Abstract, Abkürzungen
-chapters/                 Kapitel 1–5 (Introduction, Theory, Methods, Results, Discussion)
-appendix/                 Anhänge A–E (KI-Deklaration, Befehle, Rohdaten, Code, Selbständigkeitserklärung)
-figures/                  Abbildungen (Bilder und TikZ)
-code/                     Code für den Anhang (Bridge-Node, URDF, Launch-Files)
+main.tex                  main file (settings, order of the chapters)
+references.bib            literature
+frontmatter/              title page, imprint, abstract, abbreviations
+chapters/                 chapters 1–5 (introduction, theory, methods, results, discussion)
+appendix/                 appendices A–E (AI declaration, commands, raw data, code, declaration of originality)
+figures/                  figures (images and TikZ)
+code/                     code for the appendix (bridge node, URDF, launch files)
 ```
 
-Der Roboter-Code liegt zusätzlich im Repo `farmbot-zhaw-upm/Autonomous-Agricultural-Robot`.
+The robot code is also in the repository `farmbot-zhaw-upm/Autonomous-Agricultural-Robot`.
