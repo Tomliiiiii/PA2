@@ -2,10 +2,33 @@
 \label{ch:theory}
 
 \section{ROS2 basics}
+\label{sec:ros2_basics}
 
-ROS2 is a framework for robot software. A program in ROS2 is split into \emph{nodes}, and each node has one task, for example reading a sensor or controlling the motors. Nodes exchange messages over named channels called \emph{topics}. A node can publish messages on a topic, and any other node can subscribe to it~\citep{ros2_jazzy}. Each topic has a fixed message type, for example \texttt{sensor\_msgs/LaserScan} for a lidar scan or \texttt{geometry\_msgs/Twist} for a velocity command. Settings of a node are given as \emph{parameters}, and several nodes can be started together with a \emph{launch file}~\citep{ros2_jazzy}.
+ROS2 (Robot Operating System 2) is a framework for robot software. Despite its name, it is not an operating system but a collection of libraries and tools that run on top of an operating system such as Linux~\citep{ros2_jazzy}. ROS2 provides ready-made packages for tasks such as mapping and navigation, for example SLAM Toolbox and Nav2, so that these do not have to be developed from scratch. ROS2 is widely used in robotics research, and navigation and SLAM are among its most common applications~\citep{albatati2026}. Its modular structure makes it possible to combine existing packages with own nodes into a larger system~\citep{bonci2023}. The most important concepts are explained below, each with an example from this project.
 
-The positions of the robot and its sensors are described with coordinate frames. The library \texttt{tf2} keeps track of the transforms between these frames, so that for example a lidar point can be converted from the lidar frame into the map frame~\citep{ros2_jazzy}. REP~103 defines SI units and a coordinate system with $x$ forward, $y$ to the left and $z$ up~\citep{rep103}. REP~105 defines the standard frames of a mobile robot~\citep{rep105}:
+\begin{description}
+  \item[Node] A node is a program with one specific task, for example reading the lidar or controlling the motors. A robot system consists of many nodes that run at the same time and work together~\citep{ros2_jazzy}. Example: the lidar driver \texttt{sllidar\_node}.
+
+  \item[Topic] A topic is a named channel over which nodes exchange data, for example \texttt{/scan} for the lidar data. Topics are used for data that is sent continuously~\citep{ros2_jazzy}.
+
+  \item[Publisher and subscriber] A node that sends data on a topic is a publisher, a node that receives data from a topic is a subscriber. A topic can have several publishers and several subscribers, and they do not need to know each other~\citep{ros2_jazzy}. Example: the lidar driver publishes on \texttt{/scan}, and SLAM Toolbox and Nav2 subscribe to it.
+
+  \item[Message] Each topic has a fixed message type that defines the structure of the data~\citep{ros2_jazzy}. Example: \texttt{sensor\_msgs/LaserScan} contains the distances measured by the lidar, \texttt{geometry\_msgs/Twist} contains a linear and an angular velocity.
+
+  \item[Service] A service is used for a single request with an answer, similar to a function call~\citep{ros2_jazzy}. Example: saving the map.
+
+  \item[Action] An action is used for longer tasks. A client sends a goal, receives feedback while the task is running and a result at the end. The goal can also be cancelled~\citep{ros2_jazzy}. Example: Nav2 receives a navigation goal as an action and reports the progress until the goal is reached.
+
+  \item[Parameter] Parameters are settings of a node that can be changed without changing the code, for example in a configuration file~\citep{ros2_jazzy}. Example: the maximum velocity of the robot in Nav2.
+
+  \item[Launch file] A launch file starts several nodes at once, together with their parameters~\citep{ros2_jazzy}.
+
+  \item[Package and workspace] The code is organised in packages. A package contains for example the nodes, launch files and configuration files of one part of the system. Packages are stored in a workspace and built with the tool \texttt{colcon}~\citep{ros2_jazzy}.
+\end{description}
+
+The communication between nodes is based on DDS (Data Distribution Service). Nodes find each other automatically in the same network, without a central server~\citep{ros2_jazzy,albatati2026}. This is why for example a computer in the same network can also receive the topics of the robot.
+
+\paragraph{Coordinate frames.} The positions of the robot and its sensors are described with coordinate frames. The library \texttt{tf2} keeps track of the transforms between these frames, so that for example a lidar point can be converted from the lidar frame into the map frame~\citep{ros2_jazzy}. The ROS standard REP~103 defines SI units and a coordinate system with $x$ forward, $y$ to the left and $z$ up~\citep{rep103}. REP~105 defines the standard frames of a mobile robot~\citep{rep105}:
 \begin{itemize}
   \item \texttt{base\_link} is fixed to the robot,
   \item \texttt{odom} is a frame in which the robot position changes smoothly but drifts over time (odometry),
@@ -16,23 +39,46 @@ The transform chain is therefore \texttt{map}~$\rightarrow$~\texttt{odom}~$\righ
 \section{Mapping and navigation}
 \label{sec:theory_slam}
 
-\paragraph{SLAM Toolbox.} SLAM (simultaneous localisation and mapping) means that the robot builds a map and at the same time estimates its own position in this map. In this work, the SLAM Toolbox was used, a ROS2 package for 2D SLAM with a lidar~\citep{slam_toolbox}. It matches each new laser scan with the previous scans (scan matching), stores the robot poses in a pose graph and corrects the graph when the robot comes back to a place it has already seen (loop closure). The odometry of the robot is used as the starting point for the scan matching. SLAM Toolbox publishes the map on \texttt{/map} and the transform \texttt{map}~$\rightarrow$~\texttt{odom}. It can run in a synchronous mode, where every scan is processed, or in an asynchronous mode, where a new scan is only processed when the previous one is finished~\citep{slam_toolbox}.
+\paragraph{Lidar.} A lidar measures the distance to surrounding objects with laser light. To measure in more than one direction, the laser beam is moved by a scanning mechanism, for example by turning the measuring unit with a motor or by moving a mirror~\citep{raj2020}. A 2D lidar, like the one used in this work, measures in a single plane around the sensor. It therefore only detects objects that cross this plane.
 
-\paragraph{Nav2.} Nav2 is the navigation stack of ROS2~\citep{nav2_docs}. It consists of several nodes:
+\paragraph{Approaches to SLAM.} SLAM has been studied for several decades. Early approaches were based on filters, for example the extended Kalman filter or particle filters, which update the estimate of the robot pose and the map step by step. Most current systems are based on graph optimisation: the robot poses are stored as nodes of a graph, the measurements between the poses form the edges, and the whole graph is optimised to find the map that fits all measurements best~\citep{cadena2016,grisetti2010}. As sensors, mainly lidars and cameras are used~\citep{cadena2016}.
+
+\paragraph{Mapping and localisation.} To navigate, a robot needs a map of its surroundings and has to know its own position in this map. If no map exists yet, both have to be estimated at the same time. This is called SLAM (simultaneous localisation and mapping). In ROS2, the positioning system provides the transform \texttt{map}~$\rightarrow$~\texttt{odom}, and the odometry of the robot provides \texttt{odom}~$\rightarrow$~\texttt{base\_link}~\citep{nav2_concepts}.
+
+In this work, SLAM Toolbox was used, a ROS2 package for 2D SLAM with a lidar, which follows the graph-based approach~\citep{slam_toolbox,grisetti2010}. It is also the default package for mapping in Nav2~\citep{nav2_concepts}. SLAM Toolbox matches each new laser scan with the previous scans (scan matching), stores the robot poses in a pose graph and corrects the graph when the robot comes back to a place it has already seen (loop closure). The odometry of the robot is used as the starting point for the scan matching. SLAM Toolbox publishes the map on \texttt{/map} and the transform \texttt{map}~$\rightarrow$~\texttt{odom}. It can run in a synchronous mode, where every scan is processed, or in an asynchronous mode, where a new scan is only processed when the previous one is finished~\citep{slam_toolbox}.
+
+\paragraph{Costmaps.} For navigation, the surroundings are represented as a costmap. This is a 2D grid in which each cell has a cost: unknown, free, occupied, or inflated~\citep{nav2_concepts}. Inflated cells form a safety zone around obstacles, so that the robot keeps a distance to them. The costmap is built from several layers, for example from the saved map and from the current sensor data~\citep{nav2_concepts}. In Nav2, a global costmap is used for planning the whole path, and a smaller local costmap around the robot is used for following it.
+
+\paragraph{Planning and control.} Navigation is split into two tasks~\citep{nav2_concepts}:
 \begin{itemize}
-  \item the \emph{planner server} plans a path from the robot to the goal on a global cost map,
-  \item the \emph{controller server} follows this path and calculates velocity commands using a local cost map around the robot,
-  \item the \emph{behavior tree navigator} receives the goal and coordinates the other nodes,
-  \item the \emph{behavior server} runs recovery behaviours, for example turning on the spot or backing up, when the robot is stuck,
-  \item the \emph{velocity smoother} limits the velocities and accelerations before the command is sent to the robot on \texttt{/cmd\_vel}.
+  \item A \emph{planner} computes a path from the current position of the robot to the goal, using the global costmap.
+  \item A \emph{controller} follows this path and computes the velocity commands, using the local costmap. In this way, the robot can also react to obstacles that are not in the map.
 \end{itemize}
-The cost maps contain the obstacles from the map and from the current laser scan, with a safety zone around them (inflation), so that the planned path keeps a distance to obstacles~\citep{nav2_docs}. One of the available controllers is the MPPI controller (model predictive path integral). It samples many possible trajectories, rates them with several criteria (e.g.\ distance to the path and to obstacles) and chooses the best one~\citep{nav2_docs}.
+One of the controllers available in Nav2 is the MPPI controller (model predictive path integral). It samples many possible trajectories, rates them with several criteria (e.g.\ distance to the path and to obstacles) and chooses the best one~\citep{nav2_docs}. The Rotation Shim Controller can be placed in front of another controller. If the path points in a very different direction than the robot, it first turns the robot on the spot and then hands over to the other controller~\citep{nav2_rotation_shim}.
+
+\paragraph{Nav2.} Nav2 is the navigation stack of ROS2 and consists of several nodes~\citep{nav2_concepts}:
+\begin{itemize}
+  \item the \emph{behavior tree navigator} receives the goal as an action (Section~\ref{sec:ros2_basics}) and coordinates the other nodes,
+  \item the \emph{planner server} and the \emph{controller server} contain the planner and the controller,
+  \item the \emph{behavior server} runs recovery behaviours when the robot is stuck, for example clearing the costmap, turning on the spot or backing up,
+  \item the \emph{velocity smoother} limits the velocities and accelerations before the command is sent to the robot,
+  \item the \emph{collision monitor} checks the commands again directly before they are sent to the robot and can slow down or stop the robot to prevent a collision~\citep{nav2_collision_monitor}.
+\end{itemize}
 
 Nav2 can also be used while the map is still being created. In this case, SLAM Toolbox provides the map and the transform \texttt{map}~$\rightarrow$~\texttt{odom}, and no separate localisation is needed~\citep{nav2_slam}.
 
-\paragraph{Visualisation.} Foxglove is a tool for visualising robot data. The \texttt{foxglove\_bridge} runs as a node on the robot and provides the ROS2 topics over a WebSocket connection, so that the Foxglove application on another computer can display them and also publish messages~\citep{foxglove_bridge}.
+\paragraph{Exploration.} To create a map without driving the robot by hand, the robot has to decide by itself where to go next. A common approach is frontier-based exploration~\citep{yamauchi1997}. A \emph{frontier} is the border between known free space and unknown space in the map. The robot drives to a frontier, sees the area behind it, and the map grows. This is repeated until no reachable frontiers are left. The ROS2 package \texttt{explore\_lite} implements this approach. It reads the map, selects a frontier and sends it as a goal to Nav2~\citep{m_explore}.
 
 \section{Challenges of self-driving robots}
 \label{sec:challenges}
 
-\todo{To be written with literature.}
+Outdoor and agricultural environments are more difficult for mobile robots than indoor environments. The literature names the following challenges:
+\begin{itemize}
+  \item \textbf{Localisation:} GNSS signals are often blocked, reflected or inaccurate, for example near buildings or trees. Other methods such as SLAM are therefore needed~\citep{aguiar2020,oliveira2021}.
+  \item \textbf{Changing environment:} Outdoor environments change quickly, for example through plant growth, weather or season. This makes it difficult to use a map over a long time~\citep{aguiar2020}.
+  \item \textbf{Drift:} Small errors of the position estimate add up during long operations~\citep{aguiar2020}.
+  \item \textbf{Terrain:} Uneven or sloped ground makes driving and perception more difficult, and wheeled robots can compact the soil~\citep{oliveira2021,aguiar2020}.
+  \item \textbf{Perception:} Changing light conditions and objects that hide each other make it difficult to recognise the surroundings~\citep{oliveira2021,aguiar2020}.
+  \item \textbf{Cost and robustness:} Sensors are expensive and have to work in harsh conditions~\citep{oliveira2021}.
+\end{itemize}
+Besides these technical challenges, safety is important as soon as robots work near humans~\citep{duckett2018}.

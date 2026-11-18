@@ -31,7 +31,11 @@
   \item MPPI with skid steering: turning in several small moves; Rotation Shim Controller makes turning on the spot possible.
   \item Possible reason for the stuttering at low angular acceleration: the shim increases the command step by step starting from the measured angular velocity, the robot turns slower than commanded (slip, 52\,\%), so the commands stay too low to start the rotation. Still to be checked.
   \item Supervisor: robot should work with partial maps and avoid obstacles without knowing the whole area (Schlosshof is large). Nav2 already works with the growing SLAM map and the live scan in the local cost map.
-  \item Standstill during obstacle avoidance: cause still open.
+  \item Standstill during obstacle avoidance: commands near obstacles very small, Pi could not keep \SI{20}{\hertz}; after reducing to \SI{10}{\hertz} and relaxing the progress checker clearly better (goals in under \SI{25}{\second} instead of over \SI{1}{\minute}).
+  \item Dark, matte obstacle: robot turned on the spot repeatedly; possibly the lidar does not detect the box reliably (low reflection). To be checked in the scan.
+  \item Exploration works in a closed room: map created autonomously in about \SI{2}{\minute}.
+  \item 2D lidar does not see low obstacles or edges (door threshold, kerbs): robot fell over the door threshold. Open areas have to be closed off physically; possible improvements: virtual walls (keepout zones) or an additional sensor pointing at the floor.
+  \item Schlosshof: larger area, open passages, uneven ground (link to challenges in Section~\ref{sec:challenges}).
 \end{itemize}}
 
 \section{Achievement of objectives}

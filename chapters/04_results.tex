@@ -99,18 +99,46 @@ The scan was published with \SI{10.1}{\hertz} on average (time steps \SIrange{0.
 \section{Mapping and navigation}
 \label{sec:nav_results}
 
-\todo{Write at the end. Notes so far:
+\todo{Final results from the Schlosshof. The indoor results below are preliminary tests and serve as a template.}
+
+\subsection{Exploration and map}
+
+\paragraph{Indoor test (preliminary).} In a living room, the robot explored the room on its own with \texttt{explore\_lite}. The open door was closed off. Within about \SI{2}{\minute}, \texttt{explore\_lite} set six goals, and then stopped by itself because no reachable frontiers were left. Most goals were replaced by a new goal before they were reached, because the map grew while the robot was driving and a better frontier was found. Fig.~\ref{fig:map} shows the resulting map. In a first try without the door being closed off, the robot drove over the door threshold and fell, because the lidar does not detect the threshold.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{figures/map_exploration_indoor.png}
+  \caption{Map of a living room created autonomously with \texttt{explore\_lite} and SLAM Toolbox (indoor test). White: free, black: occupied, grey: unknown. Red: current lidar scan, blue: pose graph of SLAM Toolbox. \todo{Replace with Schlosshof map.}}
+  \label{fig:map}
+\end{figure}
+
+\todo{Schlosshof: duration, number of goals, map, map accuracy (table: distance in map vs.\ measured).}
+
+\subsection{Reaching goals}
+
+\paragraph{Indoor test (preliminary).} After the exploration, three goals were set in the finished map. All three were reached, in \SI{14}{\second}, \SI{13}{\second} and \SI{21}{\second}, without any \texttt{Failed to make progress} messages.
+
+\todo{Schlosshof: table with goal, reached yes/no, time, number of \texttt{Failed to make progress}, distance to goal.}
+
+\subsection{Obstacle avoidance}
+
+\paragraph{Indoor test (preliminary).} The robot detected obstacles that were not in the map and drove around them, but the result varied between runs. Before the adjustments of the controller rate and the progress checker, detours took several minutes, with repeated \texttt{Failed to make progress} messages and recovery behaviours. With a black, matte box as obstacle, the robot turned on the spot repeatedly instead of driving around it, and Nav2 aborted the goal after about \SI{5}{\minute}.
+
+\todo{Schlosshof: table with obstacle, detected yes/no, goal reached yes/no, time.}
+
+\subsection{Development notes}
+
+\todo{Shorten or move to the appendix. Notes from the development:
 \begin{itemize}
-  \item First indoor map created and saved (\texttt{raum1}); screenshot still missing.
+  \item First indoor map created and saved (\texttt{raum1}).
   \item Slowly growing offset between \texttt{odom} and \texttt{base\_link} visible in Foxglove (gyro drift), corrected by SLAM Toolbox via \texttt{map}~$\rightarrow$~\texttt{odom}.
   \item Start problem: Nav2 reported missing transform \texttt{base\_link}~$\rightarrow$~\texttt{map}, SLAM Toolbox dropped scans (``Message Filter dropping message''). Cause: \texttt{robot\_state\_publisher} not running. Fixed by restart and fixed start order.
-  \item Two goals set in Foxglove were reached.
-  \item Problems: ``Failed to make progress'' with recovery behaviours, jerky driving at low velocities, occasional ``control loop missed its desired rate''.
   \item \texttt{bringup.launch.py}: all nodes start. \texttt{ros2 node list} first showed only part of the nodes; after \texttt{ros2 daemon stop} all nodes were listed.
-  \item Small room with robot radius \SI{0.22}{\metre} and inflation radius \SI{0.70}{\metre}: robot hardly moved, area around it was treated as blocked.
-  \item Higher velocity limits: driving straight much smoother. Turning: stuttering forward and backward movements instead of turning on the spot.
-  \item Constant command \SI{1.6}{\radian\per\second} with \texttt{ros2 topic pub} (without Nav2): robot turns smoothly on the spot $\rightarrow$ hardware OK.
-  \item Rotation Shim Controller: robot turns on the spot, but with interruptions at \SI{2.5}{\radian\per\second\squared}; much better at \SI{10}{\radian\per\second\squared}.
-  \item Obstacle test (living room): obstacle detected, robot drives around it and reaches the goal, but sometimes stands still for several seconds, and the detour takes very long. Cause still open (log analysis and CPU load planned).
-  \item Still to do: analyse standstill in obstacle test, repeated runs (success rate, position error), map accuracy, exploration (\texttt{explore\_lite}), Schlosshof.
+  \item Small room with robot radius \SI{0.22}{\metre} and inflation radius \SI{0.70}{\metre}: robot hardly moved.
+  \item Higher velocity limits: driving straight much smoother; turning: stuttering forward and backward movements.
+  \item Constant command \SI{1.6}{\radian\per\second} with \texttt{ros2 topic pub} (without Nav2): robot turns smoothly $\rightarrow$ hardware OK.
+  \item Rotation Shim Controller: turning with interruptions at \SI{2.5}{\radian\per\second\squared}, much better at \SI{10}{\radian\per\second\squared}.
+  \item Log: ``Control loop missed its desired rate'' at \SI{20}{\hertz} (\SIrange{19}{19.7}{\hertz}, drops to \SI{16}{\hertz}); at \SI{10}{\hertz} only rarely after costmap clearing.
+  \item \texttt{/cmd\_vel\_smoothed} and \texttt{/cmd\_vel} identical $\rightarrow$ collision monitor did not slow down the robot; commands near obstacles very small (below \SI{0.05}{\metre\per\second}).
+  \item At the goal: robot turned back and forth until the orientation was reached $\rightarrow$ \texttt{rotate\_to\_goal\_heading}.
 \end{itemize}}

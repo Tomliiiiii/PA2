@@ -3,13 +3,15 @@
 
 \section{Background}
 
-This project builds on a previous project at the EDXI Lab of the Institute of Computational Life Sciences, which looked at an autonomous robot for plant management on green rooftops with photovoltaic installations~\citep{graham2024}. In that project, a robot chassis, a basic control logic and design specifications were developed, and a digital twin of the robot was built with ROS2. The real robot did not drive autonomously yet: it had no sensors for the environment and no wheel encoders, so odometry, mapping and navigation were not possible. The previous work also named the unstable ROS2 Rolling distribution and the network setup at ZHAW as problems.
+Robotics is seen as an important technology for the future of agriculture, for example to address the shortage of workers and to reduce environmental impacts such as soil compaction and the use of pesticides~\citep{duckett2018}. Typical applications of agricultural robots are weeding, harvesting and the monitoring of crops~\citep{oliveira2021}. Autonomous mobile robots can take over such repetitive tasks. Before a robot can do any of these tasks, it has to know its surroundings and be able to move in them safely without hitting obstacles. This project therefore focuses on these basic capabilities, mapping and navigation, on which later tasks can build.
 
-For this project, the EDXI Lab provided a commercial robot platform, a Waveshare RaspRover, and an RPLIDAR A2M12 lidar sensor.
+This project builds on a previous project at the EDXI Lab of ZHAW, which looked at an autonomous robot for plant management on green rooftops with photovoltaic installations~\citep{graham2024}. In that project, a robot chassis, a basic control logic and design specifications were developed, and a digital twin of the robot was built with ROS2. The real robot did not drive autonomously yet: it had no sensors for the environment and no wheel encoders, so odometry, mapping and navigation were not possible. The previous work also recommended using a long-term support release of ROS2 instead of the unstable Rolling distribution.
+
+For this project, the EDXI Lab provided a commercial robot platform, a Waveshare RaspRover, which already includes wheel encoders, an IMU and a motor controller, together with an RPLIDAR A2M12 lidar sensor.
 
 \section{Objectives}
 
-The objective of this project is to implement robot control for movement and environmental mapping, so that the robot can map and navigate the Schlosshof of ZHAW Wädenswil using ROS2 and edge computing. Two results are expected:
+The objective of this project is to implement robot control for movement and environmental mapping, so that the robot can map and navigate the Schlosshof of ZHAW Wädenswil using ROS2, with all processing done on the robot itself (edge computing). Two results are expected:
 
 \begin{enumerate}
   \item \textbf{Robot and sensor control}
@@ -48,4 +50,4 @@ The work follows the guiding questions from the project outline (Tab.~\ref{tab:q
 
 \section{Scope}
 
-The project only covers the perception of the environment and the movement of the robot. Plant detection, additional actuators and the robotic arm that is developed for the robot in a separate project are not part of this work.
+The project only covers the perception of the environment and the movement of the robot. Plant detection, additional actuators and the robotic arm that is developed for the robot by students in Madrid are not part of this work.
