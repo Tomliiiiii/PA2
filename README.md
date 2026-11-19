@@ -1,8 +1,6 @@
 # PA2 – Navigation and Environmental Mapping for an Autonomous Mobile Robot
 
-Project work 2, ZHAW (ADLS), Tim Badertscher. Supervisor: Christian Glahn, EDXI Lab.
-
-Goal: control of a Waveshare RaspRover with an RPLIDAR A2M12, so that the robot creates a map with ROS2 and drives to goals in it on its own.
+Project work 2, ZHAW (ADLS), Tim Badertscher. Supervisor: Christian Glahn
 
 **Contents:** [Robot commands](#robot-commands) · [Troubleshooting](#troubleshooting) · [Demo workflow](#demo-workflow) · [Compiling the report](#compiling-the-report) · [Folder structure](#folder-structure)
 
@@ -14,7 +12,7 @@ Goal: control of a Waveshare RaspRover with an RPLIDAR A2M12, so that the robot 
 
 | Network | JupyterLab | Foxglove |
 |---|---|---|
-| Known Wi-Fi (at home) | `http://192.168.1.123:8888` | `ws://192.168.1.123:8765` |
+| Home Wi-Fi | `http://192.168.1.123:8888` | `ws://192.168.1.123:8765` |
 | No known Wi-Fi → Pi opens hotspot **"AccessPopup"** | `http://192.168.50.5:8888` | `ws://192.168.50.5:8765` |
 
 The hotspot only opens if no known Wi-Fi is in range. Connect the laptop to the hotspot first.
